@@ -9,58 +9,92 @@ import java.awt.geom.AffineTransform;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
+/**
+ * Панель для анімації фігурних узорів.
+ */
 public class TitlesPanel extends JPanel implements ActionListener {
-   private Graphics2D g2d;
-   private Timer animation;
-   private boolean is_done = true;
-   private int start_angle = 0;
-   private int shape;
+    /** Контекст малювання. */
+    private Graphics2D g2d;
+    /** Таймер анімації. */
+    private Timer animation;
+    /** Прапорець готовності до нового кадру. */
+    private boolean isDone = true;
+    /** Поточний кут обертання (градуси). */
+    private int startAngle = 0;
+    /** Код типу фігури для {@link ShapeFactory}. */
+    private int shapeCode;
 
-   public TitlesPanel(int _shape) {
-      this.shape = _shape;
-      (this.animation = new Timer(50, this)).setInitialDelay(50);
-      this.animation.start();
-   }
+    /**
+     * Конструктор, що встановлює код фігури та запускає таймер.
+     *
+     * @param shapeCode код типу фігури
+     */
+    public TitlesPanel(int shapeCode) {
+        this.shapeCode = shapeCode;
+        animation = new Timer(50, this);
+        animation.setInitialDelay(50);
+        animation.start();
+    }
 
-   public void actionPerformed(ActionEvent arg0) {
-      if (this.is_done) {
-         this.repaint();
-      }
+    /**
+     * Виконується при спрацьовуванні таймера.
+     * Якщо попередній кадр завершений, викликає {@link #repaint()}.
+     */
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (isDone) {
+            repaint();
+        }
+    }
 
-   }
+    /**
+     * Основна логіка малювання:
+     * налаштування рендерингу, обчислення розмірів,
+     * створення фігур та їхнє обертання в сітці.
+     *
+     * @param g контекст для малювання
+     */
+    private void doDrawing(Graphics g) {
+        isDone = false;
+        g2d = (Graphics2D) g;
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                             RenderingHints.VALUE_ANTIALIAS_ON);
 
-   private void doDrawing(Graphics g) {
-      this.is_done = false;
-      (this.g2d = (Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-      Dimension size = this.getSize();
-      Insets insets = this.getInsets();
-      int w = size.width - insets.left - insets.right;
-      int h = size.height - insets.top - insets.bottom;
-      ShapeFactory shape = new ShapeFactory(this.shape);
-      this.g2d.setStroke(shape.stroke);
-      this.g2d.setPaint(shape.paint);
-      double angle = (double)(this.start_angle++);
-      if (this.start_angle > 360) {
-         this.start_angle = 0;
-      }
+        Dimension size = getSize();
+        Insets insets = getInsets();
+        int w = size.width  - insets.left - insets.right;
+        int h = size.height - insets.top  - insets.bottom;
 
-      double dr = 90.0D / ((double)w / ((double)shape.width * 1.5D));
+        ShapeFactory factory = new ShapeFactory(shapeCode);
+        g2d.setStroke(factory.stroke);
+        g2d.setPaint(factory.paint);
 
-      for(int j = shape.height; j < h; j += (int)((double)shape.height * 1.5D)) {
-         for(int i = shape.width; i < w; i += (int)((double)shape.width * 1.5D)) {
-            angle = angle > 360.0D ? 0.0D : angle + dr;
-            AffineTransform transform = new AffineTransform();
-            transform.translate((double)i, (double)j);
-            transform.rotate(Math.toRadians(angle));
-            this.g2d.draw(transform.createTransformedShape(shape.shape));
-         }
-      }
+        double angle = startAngle;
+        startAngle = (startAngle + 1) % 360;
+        double step = 90.0 / (w / (factory.width * 1.5));
 
-      this.is_done = true;
-   }
+        for (int y = factory.height; y < h; y += factory.height * 1.5) {
+            for (int x = factory.width; x < w; x += factory.width * 1.5) {
+                angle = (angle + step) % 360;
+                AffineTransform tx = new AffineTransform();
+                tx.translate(x, y);
+                tx.rotate(Math.toRadians(angle));
+                g2d.draw(tx.createTransformedShape(factory.shape));
+            }
+        }
 
-   public void paintComponent(Graphics g) {
-      super.paintComponent(g);
-      this.doDrawing(g);
-   }
+        isDone = true;
+    }
+
+    /**
+     * Перекриває {@link JPanel#paintComponent(Graphics)} для виклику
+     * методa {@link #doDrawing(Graphics)}.
+     *
+     * @param g контекст для малювання
+     */
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        doDrawing(g);
+    }
 }

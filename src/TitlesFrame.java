@@ -2,25 +2,40 @@ import java.awt.Component;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
+/**
+ * Головне вікно додатку для відображення анімованих фігур.
+ */
 public class TitlesFrame extends JFrame {
-   public TitlesFrame() {
-      this.initUI();
-   }
+    /**
+     * Конструктор, що ініціалізує інтерфейс користувача.
+     */
+    public TitlesFrame() {
+        initUI();
+    }
 
-   private void initUI() {
-      this.setTitle("Криві фігури");
-      this.setDefaultCloseOperation(3);
-      this.add(new TitlesPanel(37));
-      this.setSize(350, 350);
-      this.setLocationRelativeTo((Component)null);
-   }
+    /**
+     * Налаштовує параметри вікна:
+     * заголовок, дію при закритті, додавання панелі,
+     * розмір та розташування.
+     */
+    private void initUI() {
+        setTitle("Криві фігури");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        add(new TitlesPanel(37));
+        setSize(350, 350);
+        setLocationRelativeTo((Component) null);
+    }
 
-   public static void main(String[] args) {
-      SwingUtilities.invokeLater(new Runnable() {
-         public void run() {
-            TitlesFrame ps = new TitlesFrame();
-            ps.setVisible(true);
-         }
-      });
-   }
+    /**
+     * Точка входу програми.
+     * Запускає створення і показ вікна в потоці EDT.
+     *
+     * @param args параметри командного рядка (не використовуються)
+     */
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            TitlesFrame frame = new TitlesFrame();
+            frame.setVisible(true);
+        });
+    }
 }
